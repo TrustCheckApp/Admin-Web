@@ -4,7 +4,7 @@ Painel web administrativo para moderacao, governanca e operacao da plataforma Tr
 
 ## Estado real atual
 - Base Next.js App Router inicializada com layout, cliente API e sessao local.
-- TC2 em andamento: login 2FA, fila de moderacao e padroes UX.
+- TC2 concluida para MVP: login 2FA, moderacao operacional e UX foundation com feedback padrao.
 
 ## Execucao local
 - `npm install`
@@ -17,3 +17,4 @@ Painel web administrativo para moderacao, governanca e operacao da plataforma Tr
 - https://github.com/TrustCheckApp/Docs
 - `Docs/docs/02-catalogo-telas.md`
 - `Docs/docs/04-conformidade-seguranca-e-escopo.md`
+

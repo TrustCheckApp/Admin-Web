@@ -1,20 +1,39 @@
-# TrustCheck Admin Web
+﻿# TrustCheck Admin Web
 
-Painel web administrativo para moderacao, governanca e operacao da plataforma TrustCheck.
+Painel administrativo web para moderacao e operacao do TrustCheck.
 
-## Estado real atual
-- Base Next.js App Router inicializada com layout, cliente API e sessao local.
-- TC2 concluida para MVP: login 2FA, moderacao operacional e UX foundation com feedback padrao.
+## Estado atual (atualizado em 2026-05-14)
+- Base Next.js funcional.
+- Login admin com fluxo 2FA e sessao local.
+- Tela de fila de moderacao operacional.
+
+## Cobertura funcional atual
+- Implementado: W01 (login) e W03 (fila de moderacao) com integracao API.
+- Pendente: W02 e W04-W10 para completar escopo do backoffice V1.
+- Endpoints consumidos ainda sao legados (`/auth/login`, `/casos/*`).
+
+## Riscos e gaps
+1. Backoffice incompleto frente ao catalogo oficial.
+2. Dependencia de endpoints legados da API.
+3. Sessao simples sem estrategia robusta de renovacao.
+
+## Proximas prioridades
+1. Migrar para endpoints V2 de moderacao/casos.
+2. Entregar backlog W02/W04-W10 por prioridade operacional.
+3. Padronizar validacoes de lint/test em CI sem prompts interativos.
 
 ## Execucao local
-- `npm install`
-- `npm run dev`
+```bash
+npm install
+npm run dev
+```
 
-## QA rapido
-- `npm run test:e2e:auth`
+## Build e QA
+```bash
+npm run build
+npm run test:e2e:auth
+```
 
-## Fonte de verdade funcional
+## Referencias
 - https://github.com/TrustCheckApp/Docs
 - `Docs/docs/02-catalogo-telas.md`
-- `Docs/docs/04-conformidade-seguranca-e-escopo.md`
-

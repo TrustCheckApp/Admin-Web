@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "node ./tests/admin-shell.test.js && node ./tests/admin-moderation.test.js && node ./tests/admin-session-guard.test.js",
+    "test": "node ./tests/admin-shell.test.js && node ./tests/admin-moderation.test.js && node ./tests/admin-session-guard.test.js && node ./tests/admin-login-session.test.js",
     "test:e2e:auth": "node ./e2e-auth/run-admin-e2e.js"
   },
   "dependencies": {

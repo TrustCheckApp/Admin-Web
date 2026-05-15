@@ -6,6 +6,23 @@ export type SessionState = {
   expiresAt: string;
 };
 
+export function getAdminSessionCookieOptions() {
+  return {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax' as const,
+    path: '/',
+    maxAge: 60 * 60,
+  };
+}
+
+export function getExpiredAdminSessionCookieOptions() {
+  return {
+    ...getAdminSessionCookieOptions(),
+    maxAge: 0,
+  };
+}
+
 export function hasAdminSessionCookie(cookieHeader?: string | null): boolean {
   if (!cookieHeader) return false;
   return cookieHeader

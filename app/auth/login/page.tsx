@@ -1,86 +1,49 @@
-'use client';
+import { redirect } from 'next/navigation';
+import { loginAdminAction } from './actions';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { saveSession } from '@/lib/session';
-import { FeedbackBox } from '@/components/feedback/FeedbackBox';
-import { apiRequest } from '@/lib/api-client';
-
-type LoginResponse =
-  | { requer2fa: true; tokenTemporario: string; mensagem: string }
-  | { accessToken: string; refreshToken: string };
-
-type TwoFaResponse = { accessToken: string; refreshToken: string };
-
-export default function LoginAdminPage() {
-  const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [twoFa, setTwoFa] = useState('');
-  const [state, setState] = useState<'idle' | 'loading' | 'error' | 'success'>('idle');
-  const [message, setMessage] = useState('');
-
-  async function submit() {
-    if (!email || !password) {
-      setState('error');
-      setMessage('Credenciais obrigatorias.');
-      return;
-    }
-    if (twoFa.length !== 6) {
-      setState('error');
-      setMessage('2FA obrigatorio (6 digitos).');
-      return;
-    }
-
-    try {
-      setState('loading');
-      setMessage('Autenticando...');
-
-      const login = await apiRequest<LoginResponse>('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ email, senha: password }),
-      });
-
-      let accessToken = '';
-      if ('requer2fa' in login && login.requer2fa) {
-        const twoFaResult = await apiRequest<TwoFaResponse>('/auth/2fa/confirmar', {
-          method: 'POST',
-          accessToken: login.tokenTemporario,
-          body: JSON.stringify({ codigo: twoFa }),
-        });
-        accessToken = twoFaResult.accessToken;
-      } else {
-        accessToken = (login as { accessToken: string }).accessToken;
-      }
-
-      const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
-      saveSession({ accessToken, role: 'admin', expiresAt });
-      setState('success');
-      setMessage('Sessao autenticada.');
-      router.push('/admin/moderacao');
-    } catch (error) {
-      setState('error');
-      setMessage(error instanceof Error ? error.message : 'Falha de autenticacao.');
-    }
-  }
+export default function LoginAdminPage({ searchParams }: { searchParams?: { next?: string } }) {
+  const next = searchParams?.next && searchParams.next.startsWith('/') && !searchParams.next.startsWith('//') ? searchParams.next : '/admin';
 
   return (
-    <div className="container">
-      <div className="card" style={{ maxWidth: 460, margin: '40px auto', display: 'grid', gap: 10 }}>
-        <h1>Login Admin (2FA)</h1>
-        <input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <input placeholder="Senha" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-        <input placeholder="Codigo 2FA" value={twoFa} onChange={(e) => setTwoFa(e.target.value)} />
-        <button onClick={submit} disabled={state === 'loading'}>
-          {state === 'loading' ? 'Entrando...' : 'Entrar'}
-        </button>
-        {state !== 'idle' ? (
-          <FeedbackBox
-            type={state === 'loading' ? 'loading' : state === 'error' ? 'error' : 'success'}
-            message={message}
-          />
-        ) : null}
-      </div>
-    </div>
+    <main className="min-h-screen bg-slate-950 px-6 py-10 text-slate-100">
+      <section className="mx-auto max-w-md rounded-2xl border border-slate-800 bg-slate-900/70 p-8 shadow-lg">
+        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-300">TrustCheck Admin</p>
+        <h1 className="mt-4 text-3xl font-bold text-white">Login Admin</h1>
+        <p className="mt-3 text-sm leading-6 text-slate-300">
+          Acesso administrativo protegido por sessão via cookie HttpOnly. A integração real com API e 2FA segue pendente.
+        </p>
+
+        <form action={loginAdminAction} className="mt-6 grid gap-4">
+          <input name="next" type="hidden" value={next} />
+          <label className="grid gap-2 text-sm text-slate-300">
+            E-mail
+            <input
+              className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 outline-none focus:border-cyan-300"
+              name="email"
+              placeholder="admin@trustcheck.local"
+              type="email"
+              required
+            />
+          </label>
+          <label className="grid gap-2 text-sm text-slate-300">
+            Senha
+            <input
+              className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 outline-none focus:border-cyan-300"
+              name="password"
+              placeholder="Senha administrativa"
+              type="password"
+              required
+            />
+          </label>
+          <button className="rounded-xl bg-cyan-300 px-4 py-2 text-sm font-semibold text-slate-950" type="submit">
+            Entrar
+          </button>
+        </form>
+
+        <form action={async () => { 'use server'; redirect('/'); }} className="mt-3">
+          <button className="text-sm text-slate-400 underline" type="submit">Voltar</button>
+        </form>
+      </section>
+    </main>
   );
 }

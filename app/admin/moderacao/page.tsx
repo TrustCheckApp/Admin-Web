@@ -1,100 +1,26 @@
-'use client';
+import { AdminShell } from '../../../components/admin/AdminShell';
+import { MetricCard } from '../../../components/admin/MetricCard';
+import { ModerationQueue } from '../../../components/admin/ModerationQueue';
 
-import { useEffect, useMemo, useState } from 'react';
-import { FeedbackBox } from '@/components/feedback/FeedbackBox';
-import { readSession, clearSession } from '@/lib/session';
-import { apiRequest } from '@/lib/api-client';
-
-type ModerationCase = { id: string; numero?: string; status: string };
+const moderationMetrics = [
+  { label: 'Casos pendentes', value: '18', helper: 'Itens aguardando triagem ou decisão da equipe admin.' },
+  { label: 'Risco reputacional', value: '5', helper: 'Casos com sinais de criticidade para revisão prioritária.' },
+  { label: 'SLA', value: '4h', helper: 'Menor janela demonstrativa restante na fila atual.' },
+];
 
 export default function ModeracaoPage() {
-  const [state, setState] = useState<'loading' | 'error' | 'empty' | 'success'>('loading');
-  const [items, setItems] = useState<ModerationCase[]>([]);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    const run = async () => {
-      const session = readSession();
-      if (!session) {
-        setState('error');
-        setError('Sessao invalida. Faca login novamente.');
-        return;
-      }
-      if (new Date(session.expiresAt).getTime() <= Date.now()) {
-        clearSession();
-        setState('error');
-        setError('Sessao expirada. Faca login novamente.');
-        return;
-      }
-
-      try {
-        const data = await apiRequest<ModerationCase[]>('/casos/moderacao/fila', {
-          method: 'GET',
-          accessToken: session.accessToken,
-        });
-        setItems(data);
-        setState(data.length ? 'success' : 'empty');
-      } catch (e) {
-        setState('error');
-        setError(e instanceof Error ? e.message : 'Erro ao carregar fila.');
-      }
-    };
-
-    void run();
-  }, []);
-
-  async function decide(caseId: string, approved: boolean) {
-    const session = readSession();
-    if (!session) return;
-
-    const decisao = approved ? 'PUBLICADO' : 'REJEITADO';
-    try {
-      await apiRequest<{ casoId: string; novoStatus: string }>(`/casos/${caseId}/moderar`, {
-        method: 'PUT',
-        accessToken: session.accessToken,
-        body: JSON.stringify({
-          decisao,
-          observacao: approved ? 'Aprovado pelo painel admin' : 'Rejeitado pelo painel admin',
-        }),
-      });
-
-      setItems((prev) =>
-        prev.map((item) =>
-          item.id === caseId
-            ? { ...item, status: approved ? 'PUBLICADO' : 'NAO_RESOLVIDO' }
-            : item,
-        ),
-      );
-    } catch (e) {
-      setState('error');
-      setError(e instanceof Error ? e.message : 'Erro ao moderar caso.');
-    }
-  }
-
-  const updated = useMemo(() => items.filter((i) => i.status !== 'EM_MODERACAO'), [items]);
-
   return (
-    <div className="container" style={{ display: 'grid', gap: 12 }}>
-      <h1>Fila de Moderacao (W03)</h1>
-      {state === 'loading' && <FeedbackBox type="loading" message="Carregando fila..." />}
-      {state === 'error' && <FeedbackBox type="error" message={error || 'Falha de sessao.'} />}
-      {state === 'empty' && <FeedbackBox type="empty" message="Nao ha casos pendentes." />}
-
-      {state === 'success' &&
-        items.map((item) => (
-          <div className="card" key={item.id} style={{ display: 'grid', gap: 8 }}>
-            <strong>{item.numero ?? item.id}</strong>
-            <span>Status: {item.status}</span>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={() => decide(item.id, true)}>Aprovar</button>
-              <button onClick={() => decide(item.id, false)}>Rejeitar</button>
-            </div>
-          </div>
+    <AdminShell
+      title="Fila de Moderação"
+      description="W03 padronizada no shell administrativo para priorizar casos pendentes, risco reputacional e SLA sem expor dados pessoais ou evidências privadas."
+    >
+      <section className="grid gap-4 md:grid-cols-3">
+        {moderationMetrics.map((metric) => (
+          <MetricCard key={metric.label} label={metric.label} value={metric.value} helper={metric.helper} />
         ))}
+      </section>
 
-      {updated.length > 0 ? (
-        <FeedbackBox type="success" message={`${updated.length} caso(s) moderado(s) com sucesso.`} />
-      ) : null}
-    </div>
+      <ModerationQueue />
+    </AdminShell>
   );
 }

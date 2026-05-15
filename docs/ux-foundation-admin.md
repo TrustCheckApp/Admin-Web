@@ -65,6 +65,14 @@ Estados esperados para evolução:
 - Ação pendente.
 - Ação concluída com auditoria.
 
+## Sessão e acesso administrativo
+
+- `/admin/*` deve exigir sessão.
+- O middleware protege a navegação por presença do cookie administrativo.
+- O shell visual não é controle de acesso e não deve ser usado isoladamente como barreira de segurança.
+- O login deve evoluir para criar cookie HttpOnly, seguro e com expiração.
+- Mensagens de login e erro não devem revelar detalhes sensíveis sobre usuários, tokens ou políticas internas.
+
 ## Segurança e LGPD
 
 - O shell visual não é controle de acesso.
@@ -74,4 +82,4 @@ Estados esperados para evolução:
 
 ## Estado atual
 
-W02 Dashboard Global está em estado fundacional com dados demonstrativos. W03 Fila de Moderação está em estado parcial padronizado, integrada ao `AdminShell` com fila demonstrativa e sem dados pessoais reais. A próxima etapa recomendada é criar guards/middleware de sessão admin e depois integrar W03 a endpoints reais da API.
+W02 Dashboard Global está em estado fundacional com dados demonstrativos. W03 Fila de Moderação está em estado parcial padronizado, integrada ao `AdminShell` com fila demonstrativa e sem dados pessoais reais. A fundação de sessão admin protege `/admin/*` por presença de cookie, mas a validação forte ainda depende da integração com W01 Login Admin e API.
